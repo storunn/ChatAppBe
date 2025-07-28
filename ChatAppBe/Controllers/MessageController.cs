@@ -18,7 +18,19 @@ namespace ChatAppBe.Controllers
         [HttpPost]
         public IActionResult SendMessage(SendMessageRequest request)
         {
-            return Ok(_messageService.SendMessage(request));
+            return Ok(_messageService.SendMessageAsync(request));
         }
+
+        //[HttpGet]
+        //public IActionResult GetMessagesByUserId(int userId)
+        //{
+        //    return Ok(_messageService.GetMessagesByUserId(userId));
+        //}
+
+        //[HttpGet]
+        //public IActionResult GetMessagesByUsername(string username)
+        //{
+        //    return Ok(_messageService.GetMessagesByUsername(username));
+        //}
     }
 }

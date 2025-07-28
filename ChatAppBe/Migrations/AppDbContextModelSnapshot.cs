@@ -41,7 +41,7 @@ namespace ChatAppBe.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("ChatAppBe.Data.Entities.User", b =>
@@ -62,7 +62,7 @@ namespace ChatAppBe.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 #pragma warning restore 612, 618
         }
