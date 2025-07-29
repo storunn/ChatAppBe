@@ -42,6 +42,7 @@ public class MessageService : IMessageService
             ReceiverUserId = x.ReceiverUserId,
             ReceiverUsername = x.ReceiverUser.Username,
             Msg = x.Msg,
+            SentAt = x.SentAt,
         }).ToList();
     }
 
@@ -59,6 +60,7 @@ public class MessageService : IMessageService
                     ReceiverUserId = x.ReceiverUserId,
                     ReceiverUsername = x.ReceiverUser.Username,
                     Msg = x.Msg,
+                    SentAt = x.SentAt,
                 }).ToList();
         }
 

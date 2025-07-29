@@ -22,6 +22,7 @@ namespace ChatAppBe.Handlers
                 var user = _connectedUsers.FirstOrDefault(u => u.ConnectionId == connectionId);
                 if (user != null)
                     _connectedUsers.Remove(user);
+
             }
         }
 
@@ -32,5 +33,15 @@ namespace ChatAppBe.Handlers
                 return _connectedUsers.ToList();
             }
         }
+
+        public static string? GetUsername(string connectionId)
+        {
+            var user = _connectedUsers.FirstOrDefault(x => x.ConnectionId == connectionId);
+            if (user != null)
+                return user.Username;
+            else
+                return null;
+        }
+
     }
 }

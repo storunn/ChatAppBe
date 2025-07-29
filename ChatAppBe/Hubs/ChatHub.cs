@@ -1,4 +1,5 @@
-﻿using ChatAppBe.Data.Models;
+﻿using ChatAppBe.Data.Entities;
+using ChatAppBe.Data.Models;
 using ChatAppBe.Handlers;
 using Microsoft.AspNetCore.SignalR;
 
@@ -23,22 +24,20 @@ namespace ChatAppBe.Hubs
             });
 
             await Clients.All.SendAsync("UserListUpdated", ConnectedUserHandler.GetAllUsers());
+            await Clients.Others.SendAsync("UserJoined", username);
 
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            var username = ConnectedUserHandler.GetUsername(Context.ConnectionId);
             ConnectedUserHandler.RemoveUser(Context.ConnectionId);
 
             await Clients.All.SendAsync("UserListUpdated", ConnectedUserHandler.GetAllUsers());
+            await Clients.Others.SendAsync("UserLeft", username);
 
             await base.OnDisconnectedAsync(exception);
-        }
-
-        public async Task<List<ConnectedUser>> GetConnectedUsers()
-        {
-            return ConnectedUserHandler.GetAllUsers();
         }
     }
 }

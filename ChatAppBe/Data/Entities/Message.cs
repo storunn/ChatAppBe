@@ -18,5 +18,6 @@ namespace ChatAppBe.Data.Entities
 
         [Required]
         public string Msg { get; set; }
+        public DateTime SentAt { get; set; } = DateTime.Now;
     }
 }

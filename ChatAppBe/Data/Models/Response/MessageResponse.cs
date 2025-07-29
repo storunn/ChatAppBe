@@ -8,5 +8,7 @@
         public int ReceiverUserId { get; set; }
         public string ReceiverUsername { get; set; }
         public string Msg { get; set; }
+
+        public DateTime SentAt { get; set; }
     }
 }
