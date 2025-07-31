@@ -1,5 +1,6 @@
 ﻿using ChatAppBe.Data.DbContexts;
 using ChatAppBe.Data.Entities;
+using ChatAppBe.Data.Models;
 using ChatAppBe.Data.Models.Request;
 using ChatAppBe.Data.Models.Response;
 using ChatAppBe.Hubs;
@@ -18,19 +19,26 @@ public class MessageService : IMessageService
         _hubContext = hubContext;
     }
 
+
     public async Task<bool> SendMessageAsync(SendMessageRequest request)
     {
         User? senderUser;
 
         if (request.SenderUserId.HasValue)
-            senderUser = _context.Users.Where(x => x.Id == request.SenderUserId).FirstOrDefault();
+            senderUser = _context.Users.FirstOrDefault(x => x.Id == request.SenderUserId.Value);
         else
-            senderUser = _context.Users.Where(x => x.Username == request.SenderUsername).FirstOrDefault();
+            senderUser = _context.Users.FirstOrDefault(x => x.Username == request.SenderUsername);
+
+        if (senderUser == null)
+        {
+            Console.WriteLine("Kullanıcı bulunamadı!");
+            return false;
+        }
 
         await _hubContext.Clients.All.SendAsync("ReceiveMessage", senderUser.Username, request.Msg);
-
         return true;
     }
+
 
     public List<MessageResponse> GetMessagesByUserId(int userId)
     {

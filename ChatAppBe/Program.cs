@@ -1,4 +1,5 @@
 ﻿using ChatAppBe.Data.DbContexts;
+using ChatAppBe.Data.Models;
 using ChatAppBe.Hubs;
 using ChatAppBe.Services;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +52,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.MapHub<ChatHub>("/chathub");
-
 app.Run();

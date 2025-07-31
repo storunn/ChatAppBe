@@ -11,6 +11,11 @@ namespace ChatAppBe.Handlers
         {
             lock (_lock)
             {
+                // Aynı kullanıcıdan varsa eski bağlantıyı sil
+                var existing = _connectedUsers.FirstOrDefault(u => u.Username == user.Username);
+                if (existing != null)
+                    _connectedUsers.Remove(existing);
+
                 _connectedUsers.Add(user);
             }
         }
@@ -22,7 +27,6 @@ namespace ChatAppBe.Handlers
                 var user = _connectedUsers.FirstOrDefault(u => u.ConnectionId == connectionId);
                 if (user != null)
                     _connectedUsers.Remove(user);
-
             }
         }
 
@@ -30,18 +34,24 @@ namespace ChatAppBe.Handlers
         {
             lock (_lock)
             {
-                return _connectedUsers.ToList();
+                return _connectedUsers.ToList(); // Kopyasını döndürür.
             }
         }
 
         public static string? GetUsername(string connectionId)
         {
-            var user = _connectedUsers.FirstOrDefault(x => x.ConnectionId == connectionId);
-            if (user != null)
-                return user.Username;
-            else
-                return null;
+            lock (_lock)
+            {
+                return _connectedUsers.FirstOrDefault(x => x.ConnectionId == connectionId)?.Username;
+            }
         }
 
+        public static ConnectedUser? GetUserByUsername(string username)
+        {
+            lock (_lock)
+            {
+                return _connectedUsers.FirstOrDefault(x => x.Username == username);
+            }
+        }
     }
 }
