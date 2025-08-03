@@ -65,7 +65,44 @@ namespace ChatAppBe.Hubs
             }
         }
 
-        
+        public async Task SendGroupMessage(string groupName, string message)
+        {
+            var senderUsername = ConnectedUserHandler.GetUsername(Context.ConnectionId);
+            var sender = _context.Users.FirstOrDefault(u => u.Username == senderUsername);
+            var group = _context.Groups.FirstOrDefault(g => g.Name == groupName);
+
+            if (sender == null || group == null)
+                return;
+
+            // Veritabanına kaydet
+            _context.GroupMessages.Add(new GroupMessage
+            {
+                SenderUserId = sender.Id,
+                GroupId = group.Id,
+                Msg = message,
+                SentAt = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+
+            var time = DateTime.Now.ToString("HH:mm");
+
+            // Gruptaki tüm aktif kullanıcılara mesaj gönder
+            var members = _context.GroupMembers
+                .Where(ug => ug.GroupId == group.Id)
+                .Select(ug => ug.User.Username)
+                .ToList();
+
+            foreach (var memberUsername in members)
+            {
+                var connected = ConnectedUserHandler.GetUserByUsername(memberUsername);
+                if (connected != null)
+                {
+                    await Clients.Client(connected.ConnectionId)
+                        .SendAsync("ReceiveGroupMessage", groupName, sender.Username, message, time);
+                }
+            }
+        }
+
 
         public override async Task OnConnectedAsync()
         {
