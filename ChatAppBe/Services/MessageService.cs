@@ -3,8 +3,10 @@ using ChatAppBe.Data.Entities;
 using ChatAppBe.Data.Models;
 using ChatAppBe.Data.Models.Request;
 using ChatAppBe.Data.Models.Response;
+using ChatAppBe.Handlers;
 using ChatAppBe.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatAppBe.Services;
 public class MessageService : IMessageService
@@ -18,7 +20,6 @@ public class MessageService : IMessageService
         _context = context;
         _hubContext = hubContext;
     }
-
 
     public async Task<bool> SendMessageAsync(SendMessageRequest request)
     {
@@ -35,8 +36,42 @@ public class MessageService : IMessageService
             return false;
         }
 
-        await _hubContext.Clients.All.SendAsync("ReceiveMessage", senderUser.Username, request.Msg);
+        //// 📥 Veritabanına mesajı ekle
+        //var message = new Message
+        //{
+        //    SenderUserId = senderUser.Id,
+        //    ReceiverUserId = request.ReceiverUserId, // varsa
+        //    Msg = request.Msg,
+        //    SentAt = DateTime.Now
+        //};
+
+        //_context.Messages.Add(message);
+        //Console.WriteLine("[DEBUG] SendMessageAsync tetiklendi: " + request.Msg);
+        //try
+        //{
+        //    await _context.SaveChangesAsync();
+        //}
+        //catch (DbUpdateException ex)
+        //{
+        //    Console.WriteLine("Veritabanı hatası: " + ex.Message);
+        //    if (ex.InnerException != null)
+        //        Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+        //    return false;
+        //}
+
+        // 🔔 Mesajı kullanıcıya gönder
+        var messageResponse = new MessageResponse
+        {
+            SenderUserId = senderUser.Id,
+            SenderUsername = senderUser.Username,
+            Msg = request.Msg,
+            SentAt = DateTime.Now
+        };
+        await _hubContext.Clients.All.SendAsync("ReceiveMessage", messageResponse);
+
         return true;
+
+
     }
 
 
@@ -47,10 +82,10 @@ public class MessageService : IMessageService
             Id = x.Id,
             SenderUserId = x.SenderUserId,
             SenderUsername = x.SenderUser.Username,
-            ReceiverUserId = x.ReceiverUserId,
+            ReceiverUserId = (int)x.ReceiverUserId,
             ReceiverUsername = x.ReceiverUser.Username,
             Msg = x.Msg,
-            SentAt = x.SentAt,
+            SentAt = DateTime.Now
         }).ToList();
     }
 
@@ -65,10 +100,10 @@ public class MessageService : IMessageService
                     Id = x.Id,
                     SenderUserId = x.SenderUserId,
                     SenderUsername = x.SenderUser.Username,
-                    ReceiverUserId = x.ReceiverUserId,
+                    ReceiverUserId = (int)x.ReceiverUserId,
                     ReceiverUsername = x.ReceiverUser.Username,
                     Msg = x.Msg,
-                    SentAt = x.SentAt,
+                    SentAt = DateTime.Now
                 }).ToList();
         }
 

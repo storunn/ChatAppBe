@@ -19,7 +19,7 @@ namespace ChatAppBe.Controllers
         }
 
         // 1. Grup Oluşturma
-        [HttpPost("create")]
+        [HttpPost("CreateGroup")]
 
         public async Task<IActionResult> CreateGroup([FromQuery] string name)
         {
@@ -36,7 +36,7 @@ namespace ChatAppBe.Controllers
         }
 
         // 3. Kullanıcının Gruplarını Listeleme
-        [HttpGet("GroupMembers/{userId}")]
+        [HttpGet("GetGroupMembers/{userId}")]
         public async Task<ActionResult<List<GroupResponse>>> GetGroupMembers(int userId)
         {
             var groups = await _groupService.GetGroupMembersAsync(userId);

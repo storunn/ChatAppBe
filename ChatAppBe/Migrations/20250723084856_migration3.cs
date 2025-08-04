@@ -18,7 +18,8 @@ namespace ChatAppBe.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SenderUserId = table.Column<int>(type: "int", nullable: false),
                     ReceiverUserId = table.Column<int>(type: "int", nullable: false),
-                    Msg = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Msg = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>
                 {

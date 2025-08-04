@@ -19,9 +19,14 @@ namespace ChatAppBe.Controllers
         }
 
         [HttpPost]
-        public IActionResult SendMessage(SendMessageRequest request)
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
         {
-            return Ok(_messageService.SendMessageAsync(request));
+            var success = await _messageService.SendMessageAsync(request);
+
+            if (success)
+                return Ok(new { Message = "Mesaj gönderildi." });
+            else
+                return StatusCode(500, new { Error = "Mesaj gönderilemedi." });
         }
 
         [HttpGet("inbox/{userId}")]
