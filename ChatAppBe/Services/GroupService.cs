@@ -14,18 +14,23 @@ namespace ChatAppBe.Services
             _context = context;
         }
 
-        // 1. Grup oluştur
-        public async Task<int> CreateGroupAsync(string groupName)
+        
+        public async Task<int> CreateGroupAsync(string name, int creatorUserId)
         {
-            var group = new Group
-            {
-                Name = groupName
-            };
-
+            // 1. Grup kaydı ekle
+            var group = new Group { Name = name };
             _context.Groups.Add(group);
             await _context.SaveChangesAsync();
+
+            // 2. Grubu oluşturan kullanıcıyı gruba otomatik ekle
+            var groupMember = new GroupMember { GroupId = group.Id, UserId = creatorUserId };
+            _context.GroupMembers.Add(groupMember);
+            await _context.SaveChangesAsync();
+
             return group.Id;
         }
+
+
 
         // 2. Gruba kullanıcı ekle
         public async Task<bool> AddUserToGroupAsync(int groupId, int userId)
@@ -60,6 +65,51 @@ namespace ChatAppBe.Services
                 .ToListAsync();
         }
 
-      
+        public Task<int> CreateGroupAsync(string groupName)
+        {
+            throw new NotImplementedException();
+        }
+        public async Task<bool> LeaveGroupAsync(int groupId, int userId)
+        {
+            var membership = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+
+            if (membership == null)
+                return false;
+
+            _context.GroupMembers.Remove(membership);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> RemoveUserFromGroupAsync(int groupId, int userId)
+        {
+            var membership = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+
+            if (membership == null)
+                return false;
+
+            _context.GroupMembers.Remove(membership);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<UserResponse>> GetMembersOfGroupAsync(int groupId)
+        {
+            // GroupMember entity'sinde UserId ve GroupId alanları var, User tablosu ile ilişkili
+            var members = await _context.GroupMembers
+                .Where(gm => gm.GroupId == groupId)
+                .Select(gm => new UserResponse
+                {
+                    UserId = gm.UserId,
+                    Username = gm.User.Username // veya gm.User.Name, nasıl tuttuysan
+                                                // Buraya başka User bilgileri de ekleyebilirsin
+                })
+                .ToListAsync();
+
+            return members;
+        }
+
     }
+
 }
