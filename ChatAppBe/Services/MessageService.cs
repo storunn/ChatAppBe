@@ -36,30 +36,6 @@ public class MessageService : IMessageService
             return false;
         }
 
-        //// 📥 Veritabanına mesajı ekle
-        //var message = new Message
-        //{
-        //    SenderUserId = senderUser.Id,
-        //    ReceiverUserId = request.ReceiverUserId, // varsa
-        //    Msg = request.Msg,
-        //    SentAt = DateTime.Now
-        //};
-
-        //_context.Messages.Add(message);
-        //Console.WriteLine("[DEBUG] SendMessageAsync tetiklendi: " + request.Msg);
-        //try
-        //{
-        //    await _context.SaveChangesAsync();
-        //}
-        //catch (DbUpdateException ex)
-        //{
-        //    Console.WriteLine("Veritabanı hatası: " + ex.Message);
-        //    if (ex.InnerException != null)
-        //        Console.WriteLine("Inner exception: " + ex.InnerException.Message);
-        //    return false;
-        //}
-
-        // 🔔 Mesajı kullanıcıya gönder
         var messageResponse = new MessageResponse
         {
             SenderUserId = senderUser.Id,
@@ -109,4 +85,23 @@ public class MessageService : IMessageService
 
         return new List<MessageResponse>() { };
     }
+    public async Task<List<PrivateMessageResponse>> GetPrivateMessagesAsync(string username1, string username2)
+    {
+        return await _context.Messages
+            .Include(m => m.SenderUser)
+            .Include(m => m.ReceiverUser)
+            .Where(m =>
+                (m.SenderUser.Username == username1 && m.ReceiverUser.Username == username2) ||
+                (m.SenderUser.Username == username2 && m.ReceiverUser.Username == username1))
+            .OrderBy(m => m.SentAt)
+            .Select(m => new PrivateMessageResponse
+            {
+                From = m.SenderUser.Username,
+                Message = m.Msg,
+                Time = m.SentAt.ToString("HH:mm")
+            })
+            .ToListAsync();
+    }
+
+    
 }

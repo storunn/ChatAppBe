@@ -27,18 +27,16 @@ namespace ChatAppBe.Controllers
 
         // 2. Gruba Kullanıcı Ekleme
         [HttpPost]
-        public async Task<IActionResult> AddUserToGroup([FromQuery] int groupId, [FromQuery] int userId)
+        public async Task<IActionResult> AddUserToGroup([FromQuery] int groupId, [FromQuery] string username)
         {
-            var result = await _groupService.AddUserToGroupAsync(groupId, userId);
+            var result = await _groupService.AddUserToGroupAsync(groupId, username);
             return result ? Ok("Kullanıcı eklendi.") : BadRequest("Zaten bu grupta.");
         }
 
-
-        // 3. Kullanıcının Gruplarını Listeleme
         [HttpGet]
-        public async Task<ActionResult<List<GroupResponse>>> GetGroupMembers(int userId)
+        public async Task<ActionResult<List<GroupResponse>>> GetUserGroups(int userId)
         {
-            var groups = await _groupService.GetGroupMembersAsync(userId);
+            var groups = await _groupService.GetUserGroupsAsync(userId);
             return Ok(groups);
         }
         [HttpPost]
@@ -54,6 +52,7 @@ namespace ChatAppBe.Controllers
             var result = await _groupService.RemoveUserFromGroupAsync(groupId, userId);
             return result ? Ok("Kullanıcı gruptan çıkarıldı.") : BadRequest("Çıkarma işlemi başarısız.");
         }
+
         [HttpGet]
         public async Task<ActionResult<List<UserResponse>>> GetMembersOfGroup([FromQuery] int groupId)
         {

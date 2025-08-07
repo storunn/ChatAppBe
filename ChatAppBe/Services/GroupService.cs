@@ -1,6 +1,7 @@
 ﻿using ChatAppBe.Data.DbContexts;
 using ChatAppBe.Data.Entities;
 using ChatAppBe.Data.Models.Response;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatAppBe.Services
@@ -33,10 +34,15 @@ namespace ChatAppBe.Services
 
 
         // 2. Gruba kullanıcı ekle
-        public async Task<bool> AddUserToGroupAsync(int groupId, int userId)
+        public async Task<bool> AddUserToGroupAsync(int groupId, string username)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+                return false; // Kullanıcı bulunamadı
+
             var alreadyExists = await _context.GroupMembers
-                .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+                .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == user.Id);
 
             if (alreadyExists)
                 return false;
@@ -44,7 +50,7 @@ namespace ChatAppBe.Services
             _context.GroupMembers.Add(new GroupMember
             {
                 GroupId = groupId,
-                UserId = userId
+                UserId = user.Id
             });
 
             await _context.SaveChangesAsync();
@@ -52,7 +58,8 @@ namespace ChatAppBe.Services
         }
 
         // 3. Kullanıcının gruplarını getir
-        public async Task<List<GroupResponse>> GetGroupMembersAsync(int userId)
+        
+        public async Task<List<GroupResponse>> GetUserGroupsAsync(int userId)
         {
             return await _context.GroupMembers
                 .Where(gm => gm.UserId == userId)
@@ -65,10 +72,7 @@ namespace ChatAppBe.Services
                 .ToListAsync();
         }
 
-        public Task<int> CreateGroupAsync(string groupName)
-        {
-            throw new NotImplementedException();
-        }
+       
         public async Task<bool> LeaveGroupAsync(int groupId, int userId)
         {
             var membership = await _context.GroupMembers
@@ -102,8 +106,7 @@ namespace ChatAppBe.Services
                 .Select(gm => new UserResponse
                 {
                     UserId = gm.UserId,
-                    Username = gm.User.Username // veya gm.User.Name, nasıl tuttuysan
-                                                // Buraya başka User bilgileri de ekleyebilirsin
+                    Username = gm.User.Username 
                 })
                 .ToListAsync();
 

@@ -11,23 +11,23 @@ namespace ChatAppBe.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_UserGroups_Groups_GroupId",
-                table: "UserGroups");
+                name: "FK_s_Groups_GroupId",
+                table: "s");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_UserGroups_Users_UserId",
-                table: "UserGroups");
+                name: "FK_s_Users_UserId",
+                table: "s");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_UserGroups",
-                table: "UserGroups");
+                name: "PK_s",
+                table: "s");
 
             migrationBuilder.RenameTable(
-                name: "UserGroups",
+                name: "s",
                 newName: "GroupMembers");
 
             migrationBuilder.RenameIndex(
-                name: "IX_UserGroups_GroupId",
+                name: "IX_s_GroupId",
                 table: "GroupMembers",
                 newName: "IX_GroupMembers_GroupId");
 
@@ -86,12 +86,12 @@ namespace ChatAppBe.Migrations
 
             migrationBuilder.RenameTable(
                 name: "GroupMembers",
-                newName: "UserGroups");
+                newName: "s");
 
             migrationBuilder.RenameIndex(
                 name: "IX_GroupMembers_GroupId",
-                table: "UserGroups",
-                newName: "IX_UserGroups_GroupId");
+                table: "s",
+                newName: "IX_s_GroupId");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
@@ -114,21 +114,21 @@ namespace ChatAppBe.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_UserGroups",
-                table: "UserGroups",
+                name: "PK_s",
+                table: "s",
                 columns: new[] { "UserId", "GroupId" });
 
             migrationBuilder.AddForeignKey(
-                name: "FK_UserGroups_Groups_GroupId",
-                table: "UserGroups",
+                name: "FK_s_Groups_GroupId",
+                table: "s",
                 column: "GroupId",
                 principalTable: "Groups",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_UserGroups_Users_UserId",
-                table: "UserGroups",
+                name: "FK_s_Users_UserId",
+                table: "s",
                 column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id",

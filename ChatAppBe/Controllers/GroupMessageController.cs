@@ -15,10 +15,18 @@ public class GroupMessageController : ControllerBase
         _groupMessageService = groupMessageService;
     }
 
-    [HttpPost("send")]
+    [HttpPost]
     public async Task<IActionResult> SendGroupMessage([FromBody] SendGroupMessageRequest request)
     {
         await _groupMessageService.SendGroupMessageAsync(request);
         return Ok();
     }
+    [HttpGet]
+    public async Task<IActionResult> GetGroupMessages([FromQuery] int groupId)
+    {
+        var messages = await _groupMessageService.GetGroupMessagesAsync(groupId);
+        return Ok(messages);
+    }
+
 }
+

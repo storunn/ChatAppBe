@@ -8,5 +8,9 @@ namespace ChatAppBe.Services
         Task<bool> SendMessageAsync(SendMessageRequest request);
         List<MessageResponse> GetMessagesByUserId(int userId);
         List<MessageResponse> GetMessagesByUsername(string username);
+        Task<List<PrivateMessageResponse>> GetPrivateMessagesAsync(string username1, string username2);
+      
+
+
     }
 }

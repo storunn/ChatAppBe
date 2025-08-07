@@ -1,5 +1,4 @@
-﻿using ChatAppBe.Data;
-using ChatAppBe.Data.DbContexts;
+﻿using ChatAppBe.Data.DbContexts;
 using ChatAppBe.Data.Entities;
 using ChatAppBe.Data.Models;
 using ChatAppBe.Handlers;
@@ -28,12 +27,12 @@ namespace ChatAppBe.Hubs
             {
                 var senderConnId = Context.ConnectionId;
                 var senderUsername = ConnectedUserHandler.GetUsername(senderConnId);
-                Console.WriteLine($"[DEBUG] senderConnId: {senderConnId}, senderUsername: {senderUsername}");
 
                 var senderConn = ConnectedUserHandler.GetUserByUsername(senderUsername);
                 var receiverConn = ConnectedUserHandler.GetUserByUsername(receiverUsername);
                 var sender = _context.Users.FirstOrDefault(u => u.Username == senderUsername);
                 var receiver = _context.Users.FirstOrDefault(u => u.Username == receiverUsername);
+
                 if (sender == null || receiver == null)
                 {
                     Console.WriteLine($"[WARN] Kullanıcı bulunamadı: sender={sender?.Username}, receiver={receiver?.Username}");
@@ -42,22 +41,28 @@ namespace ChatAppBe.Hubs
 
                 var time = DateTime.Now.ToString("HH:mm");
 
-                Console.WriteLine($"[INFO] Özel mesaj: {sender.Username} → {receiver.Username}: {message}");
-
+                // 1. database'e yaz
                 _context.Messages.Add(new Message
                 {
-                    SenderUserId = sender.Id,            
-                    ReceiverUserId = receiver.Id,        
+                    SenderUserId = sender.Id,
+                    ReceiverUserId = receiver.Id,
                     Msg = message,
                     SentAt = DateTime.Now
                 });
                 await _context.SaveChangesAsync();
-                
-                await Clients.Client(receiverConn.ConnectionId)
-                    .SendAsync("ReceivePrivateMessage", sender.Username, message, time);
 
-                await Clients.Client(senderConn.ConnectionId)
-                    .SendAsync("ReceivePrivateMessage", $"Sen → {receiver.Username}", message, time);
+                // 2. kullanıcı online mı
+                if (receiverConn != null)
+                {
+                    await Clients.Client(receiverConn.ConnectionId)
+                        .SendAsync("ReceivePrivateMessage", sender.Username, message, time);
+                }
+                // 3. GÖNDERİCİYE DE MESAJ GÖNDER (kendine attığında tek, farklıya attığında iki tarafta da gözüksün)
+                if (senderConn != null && (receiverConn == null || receiverConn.ConnectionId != senderConn.ConnectionId))
+                {
+                    await Clients.Client(senderConn.ConnectionId)
+                        .SendAsync("ReceivePrivateMessage", sender.Username, message, time);
+                }
             }
             catch (Exception ex)
             {
@@ -65,16 +70,14 @@ namespace ChatAppBe.Hubs
             }
         }
 
-        public async Task SendGroupMessage(string groupName, string message)
+        public async Task SendGroupMessage(int groupId, int senderUserId, string message)
         {
-            var senderUsername = ConnectedUserHandler.GetUsername(Context.ConnectionId);
-            var sender = _context.Users.FirstOrDefault(u => u.Username == senderUsername);
-            var group = _context.Groups.FirstOrDefault(g => g.Name == groupName);
+            var sender = _context.Users.FirstOrDefault(u => u.Id == senderUserId);
+            var group = _context.Groups.FirstOrDefault(g => g.Id == groupId);
 
             if (sender == null || group == null)
                 return;
 
-            // Veritabanına kaydet
             _context.GroupMessages.Add(new GroupMessage
             {
                 SenderUserId = sender.Id,
@@ -86,7 +89,6 @@ namespace ChatAppBe.Hubs
 
             var time = DateTime.Now.ToString("HH:mm");
 
-            // Gruptaki tüm aktif kullanıcılara mesaj gönder
             var members = _context.GroupMembers
                 .Where(ug => ug.GroupId == group.Id)
                 .Select(ug => ug.User.Username)
@@ -98,11 +100,10 @@ namespace ChatAppBe.Hubs
                 if (connected != null)
                 {
                     await Clients.Client(connected.ConnectionId)
-                        .SendAsync("ReceiveGroupMessage", groupName, sender.Username, message, time);
+                        .SendAsync("ReceiveGroupMessage", sender.Username, message, group.Id, time);
                 }
             }
         }
-
 
         public override async Task OnConnectedAsync()
         {

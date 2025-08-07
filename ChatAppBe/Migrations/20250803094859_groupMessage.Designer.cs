@@ -54,7 +54,7 @@ namespace ChatAppBe.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("UserGroups");
+                    b.ToTable("s");
                 });
 
             modelBuilder.Entity("ChatAppBe.Data.Entities.GroupMessage", b =>

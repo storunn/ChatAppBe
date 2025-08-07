@@ -2,6 +2,7 @@
 using ChatAppBe.Data.Models.Request;
 using ChatAppBe.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatAppBe.Controllers
 {
@@ -45,6 +46,23 @@ namespace ChatAppBe.Controllers
 
             return Ok(messages);
         }
+        [HttpGet]
+        public async Task<IActionResult> GetPrivateMessages(string username1, string username2)
+        {
+            var messages = await _messageService.GetPrivateMessagesAsync(username1, username2);
+            return Ok(messages);
+        }
+        [HttpGet]
+        public IActionResult GetMyChats(int userId)
+        {
+            var myChats = _context.Messages
+                .Where(m => m.SenderUserId == userId || m.ReceiverUserId == userId)
+                .Select(m => m.SenderUserId == userId ? m.ReceiverUser.Username : m.SenderUser.Username)
+                .Distinct()
+                .ToList();
+            return Ok(myChats);
+        }
+
     }
 }
 

@@ -1,49 +1,75 @@
 ﻿using ChatAppBe.Data.DbContexts;
 using ChatAppBe.Data.Entities;
 using ChatAppBe.Data.Models.Request;
+using ChatAppBe.Data.Models.Response;
 using ChatAppBe.Handlers;
 using ChatAppBe.Hubs;
-using ChatAppBe.Services;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
-public class GroupMessageService : IGroupMessageService
+namespace ChatAppBe.Services
 {
-    private readonly AppDbContext _context;
-    private readonly IHubContext<ChatHub> _hubContext;
-
-    public GroupMessageService(AppDbContext context, IHubContext<ChatHub> hubContext)
+    public class GroupMessageService : IGroupMessageService
     {
-        _context = context;
-        _hubContext = hubContext;
-    }
+        private readonly AppDbContext _context;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-    public async Task SendGroupMessageAsync(SendGroupMessageRequest request)
-    {
-        var message = new GroupMessage
+        public GroupMessageService(AppDbContext context, IHubContext<ChatHub> hubContext)
         {
-            GroupId = request.GroupId,
-            SenderUserId = request.SenderUserId,
-            Msg = request.Msg,
-            SentAt = DateTime.Now
-        };
+            _context = context;
+            _hubContext = hubContext;
+        }
 
-        _context.GroupMessages.Add(message);
-        await _context.SaveChangesAsync();
-
-        // Grubun tüm üyelerine mesaj gönder
-        var usernames = _context.GroupMembers
-            .Where(gm => gm.GroupId == request.GroupId)
-            .Select(gm => gm.User.Username)
-            .ToList();
-
-        foreach (var username in usernames)
+        public async Task SendGroupMessageAsync(SendGroupMessageRequest request)
         {
-            var user = ConnectedUserHandler.GetUserByUsername(username);
-            if (user != null)
+            var message = new GroupMessage
             {
-                await _hubContext.Clients.Client(user.ConnectionId)
-                    .SendAsync("ReceiveGroupMessage", request.SenderUserId, request.Msg, request.GroupId, DateTime.Now.ToString("HH:mm"));
+                GroupId = request.GroupId,
+                SenderUserId = request.SenderUserId,
+                Msg = request.Msg,
+                SentAt = DateTime.Now
+            };
+
+            _context.GroupMessages.Add(message);
+            await _context.SaveChangesAsync();
+
+            // Gönderen kullanıcı adı
+            var senderUser = _context.Users.FirstOrDefault(u => u.Id == request.SenderUserId);
+            var senderUsername = senderUser?.Username ?? request.SenderUserId.ToString();
+
+            // Grubun tüm üyelerine mesajı gönder
+            var usernames = _context.GroupMembers
+                .Where(gm => gm.GroupId == request.GroupId)
+                .Select(gm => gm.User.Username)
+                .ToList();
+
+            foreach (var username in usernames)
+            {
+                var user = ConnectedUserHandler.GetUserByUsername(username);
+                if (user != null)
+                {
+                    await _hubContext.Clients.Client(user.ConnectionId)
+                        .SendAsync("ReceiveGroupMessage", senderUsername, request.Msg, request.GroupId, DateTime.Now.ToString("HH:mm"));
+                }
             }
         }
+
+        public async Task<List<GroupMessageResponse>> GetGroupMessagesAsync(int groupId)
+        {
+            return await _context.GroupMessages
+                .Include(m => m.SenderUser)
+                .Where(m => m.GroupId == groupId)
+                .OrderBy(m => m.SentAt)
+                .Select(m => new GroupMessageResponse
+                {
+                    SenderUsername = m.SenderUser.Username,
+                    Message = m.Msg,
+                    Time = m.SentAt.ToString("HH:mm")
+                })
+                .ToListAsync();
+        }
+
+
+
     }
 }

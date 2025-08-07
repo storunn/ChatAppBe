@@ -63,7 +63,7 @@ namespace ChatAppBe.Migrations
                 {
                     table.PrimaryKey("PK_GroupMembers", x => new { x.UserId, x.GroupId });
                     table.ForeignKey(
-                        name: "FK_UserGroups_Groups_GroupId",
+                        name: "FK_s_Groups_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Groups",
                         principalColumn: "Id",
