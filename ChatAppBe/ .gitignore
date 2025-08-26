@@ -1,0 +1,23 @@
+# .NET build çıktıları
+bin/
+obj/
+
+# Kullanıcıya özel VS / Rider ayarları
+*.user
+*.suo
+.vscode/
+.idea/
+
+# Log / geçici dosyalar
+*.log
+*.tmp
+
+# Config dosyaları (şifreli bilgiler içeriyor)
+appsettings.json
+appsettings.Development.json
+*.env
+
+# Arşiv / gereksiz dosyalar
+*.zip
+*.tar
+*.gz

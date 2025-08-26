@@ -10,27 +10,18 @@ namespace ChatAppBe.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // HATALI: "s" tablosu yok -> Drop/Rename işlemlerini KALDIRDIK.
+            // Sadece yanlış adlandırılmış FK'yi kaldırıp doğru isimle ekleyeceğiz.
+
+            // 1) Eski (yanlış isimli) FK'yi kaldır
             migrationBuilder.DropForeignKey(
                 name: "FK_s_Groups_GroupId",
-                table: "s");
+                table: "GroupMembers");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_s_Users_UserId",
-                table: "s");
+            // (Users FK'si zaten doğru isimde; bunu drop/add yapmaya gerek yok.)
+            // Eğer önceki migration bunu da düşürüp ekliyorsa sorun değil ama minimal değişiklik daha güvenli.
 
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_s",
-                table: "s");
-
-            migrationBuilder.RenameTable(
-                name: "s",
-                newName: "GroupMembers");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_s_GroupId",
-                table: "GroupMembers",
-                newName: "IX_GroupMembers_GroupId");
-
+            // 2) İstenen kolon değişiklikleri
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 table: "Groups",
@@ -47,24 +38,12 @@ namespace ChatAppBe.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)");
 
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_GroupMembers",
-                table: "GroupMembers",
-                columns: new[] { "UserId", "GroupId" });
-
+            // 3) Doğru isimle FK'yi tekrar ekle
             migrationBuilder.AddForeignKey(
                 name: "FK_GroupMembers_Groups_GroupId",
                 table: "GroupMembers",
                 column: "GroupId",
                 principalTable: "Groups",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_GroupMembers_Users_UserId",
-                table: "GroupMembers",
-                column: "UserId",
-                principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
@@ -72,27 +51,12 @@ namespace ChatAppBe.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Up'ta eklediğimiz doğru isimli FK'yi kaldır
             migrationBuilder.DropForeignKey(
                 name: "FK_GroupMembers_Groups_GroupId",
                 table: "GroupMembers");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_GroupMembers_Users_UserId",
-                table: "GroupMembers");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_GroupMembers",
-                table: "GroupMembers");
-
-            migrationBuilder.RenameTable(
-                name: "GroupMembers",
-                newName: "s");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_GroupMembers_GroupId",
-                table: "s",
-                newName: "IX_s_GroupId");
-
+            // Kolonları eski haline döndür
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 table: "Groups",
@@ -113,24 +77,12 @@ namespace ChatAppBe.Migrations
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_s",
-                table: "s",
-                columns: new[] { "UserId", "GroupId" });
-
+            // Eski (yanlış isimli) FK'yi geri ekle (Down için)
             migrationBuilder.AddForeignKey(
                 name: "FK_s_Groups_GroupId",
-                table: "s",
+                table: "GroupMembers",
                 column: "GroupId",
                 principalTable: "Groups",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_s_Users_UserId",
-                table: "s",
-                column: "UserId",
-                principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
